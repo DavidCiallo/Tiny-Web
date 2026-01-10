@@ -8,7 +8,7 @@ export function inject(instance: BaseRouterInstance) {
         route.handler = null;
         const { path, method } = route;
         const url = base + prefix + path;
-        const name = path.replace(/\"/g, "");
+        const name = path.replace(/\//g, "");
         if (method === "get") {
             instance[name] = async (query: URLSearchParams) => {
                 return http.get(url, query);

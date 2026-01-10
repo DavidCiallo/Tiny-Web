@@ -5,11 +5,11 @@ export class AccountRouterInstance extends BaseRouterInstance {
     base = "/api";
     prefix = "/account";
     router = [
-        { path: "list", method: "get", handler: Function },
-        { path: "detail", method: "get", handler: Function },
-        { path: "create", method: "post", handler: Function },
-        { path: "update", method: "put", handler: Function },
-        { path: "delete", method: "delete", handler: Function },
+        { path: "/list", method: "get", handler: Function },
+        { path: "/detail", method: "get", handler: Function },
+        { path: "/create", method: "post", handler: Function },
+        { path: "/update", method: "put", handler: Function },
+        { path: "/delete", method: "delete", handler: Function },
     ];
 
     list!: (query: AccountListQuery) => Promise<AccountListResponse>;

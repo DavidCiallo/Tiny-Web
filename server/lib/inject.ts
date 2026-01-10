@@ -3,7 +3,7 @@ import { BaseRouterInstance } from "../../shared/lib/default/decorator";
 export function inject(instance: BaseRouterInstance, functions: Record<string, Function>) {
     instance.router.forEach((route) => {
         const { path, method } = route;
-        const name = path.replace(/\"/g, "");
+        const name = path.replace(/\//g, "");
         const targetFc = functions?.[name];
         if (targetFc) {
             instance[name] = targetFc;
