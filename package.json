@@ -7,7 +7,7 @@
         "build": "rsbuild build && bun build --target=node --outfile=./dist/app.mjs ./server/app",
         "dev": "rsbuild dev --open",
         "serve": "bun run server/app",
-        "all": "concurrently \"rsbuild dev --open\" \"bun run server/app\""
+        "gen": "bun ./shared/lib/generate.ts"
     },
     "dependencies": {
         "@heroui/react": "^2.8.0-beta.5",

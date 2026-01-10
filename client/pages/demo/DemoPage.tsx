@@ -1,6 +1,6 @@
 import { Header } from "../../components/header/Header";
 import { useEffect, useState } from "react";
-import { DemoImpl } from "../../../shared/impl";
+import { DemoImpl } from "../../../shared/dto/demo";
 import { DemoRouter } from "../../api/instance";
 import { Locale } from "../../methods/locale";
 
