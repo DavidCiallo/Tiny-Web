@@ -1,4 +1,4 @@
-export class BaseEntity {
+export interface BaseEntity {
     id: string;
     create_time: number;
     update_time: number | null;

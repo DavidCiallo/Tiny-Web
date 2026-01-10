@@ -5,9 +5,9 @@ import {
     AuthRouterInstance,
     LoginResult,
     RegisterResult,
-} from "../../shared/router/AuthRouter";
-import { inject } from "../lib/inject";
-import { getIdentifyByVerify, loginUser, registerUser } from "../service/auth.service";
+} from "../../../shared/modules/auth/auth.router";
+import { inject } from "../../lib/inject";
+import { getIdentifyByVerify, loginUser, registerUser } from "./auth.service";
 
 async function alive(request: AliveRequest): Promise<AliveResponse> {
     const { auth } = request;

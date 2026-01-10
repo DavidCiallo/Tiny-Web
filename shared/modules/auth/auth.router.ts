@@ -1,26 +1,24 @@
-import { BaseRequest, BaseResponse, BaseRouterInstance } from "../lib/decorator";
+import { BaseRequest, BaseResponse, BaseRouterInstance } from "../../lib/default/decorator";
 
 export class AuthRouterInstance extends BaseRouterInstance {
     base = "/api";
     prefix = "/auth";
     router = [
         {
-            name: "login",
             path: "/login",
             method: "post",
             handler: Function,
         },
         {
-            name: "register",
             path: "/register",
             method: "post",
             handler: Function,
         },
     ];
 
-    alive: (request: AliveRequest) => Promise<AliveResponse>;
-    login: (request: AuthBody) => Promise<LoginResult>;
-    register: (request: AuthBody) => Promise<RegisterResult>;
+    alive!: (request: AliveRequest) => Promise<AliveResponse>;
+    login!: (request: AuthBody) => Promise<LoginResult>;
+    register!: (request: AuthBody) => Promise<RegisterResult>;
 
     constructor(
         inject: Function,
@@ -43,12 +41,12 @@ export interface AuthBody {
 
 export interface AliveRequest extends BaseRequest {}
 
-export interface AliveResponse extends BaseResponse {}
+export interface AliveResponse extends BaseResponse<{}> {}
 
-export interface LoginResult extends BaseResponse {
+export interface LoginResult extends BaseResponse<{}> {
     data?: {
         token: string;
     };
 }
 
-export interface RegisterResult extends BaseResponse {}
+export interface RegisterResult extends BaseResponse<{}> {}
