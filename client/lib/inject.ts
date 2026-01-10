@@ -1,4 +1,4 @@
-import { BaseRouterInstance, Route } from "../../shared/lib/decorator";
+import { BaseRouterInstance, Route } from "../../shared/lib/default/decorator";
 import { HttpClientService } from "./webhttp";
 
 export function inject(instance: BaseRouterInstance) {
@@ -6,9 +6,9 @@ export function inject(instance: BaseRouterInstance) {
     const { base, prefix, router } = instance;
     router.forEach((route: Route) => {
         route.handler = null;
-        const { name, path, method } = route;
+        const { path, method } = route;
         const url = base + prefix + path;
-
+        const name = path.replace(/\"/g, "");
         if (method === "get") {
             instance[name] = async (query: URLSearchParams) => {
                 return http.get(url, query);

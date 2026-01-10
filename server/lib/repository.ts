@@ -2,8 +2,6 @@ import fs from "fs";
 import path from "path";
 import { nanoid } from "nanoid";
 
-type Constructor<T> = { new (...args: any[]): T };
-
 const DB_PATH = "data";
 
 class Repository<T> {
@@ -16,15 +14,15 @@ class Repository<T> {
     /**
      * @param entityClass The class of the entity this repository will manage.
      */
-    private constructor(private entityClass: Constructor<T>) {
-        this.name = entityClass.name.toLowerCase().replace("entity", "");
+    private constructor(private entityName: string) {
+        this.name = entityName.toLowerCase().replace("entity", "");
         this.filePath = path.join(`./${DB_PATH}`, `${this.name}.json`);
     }
 
-    public static instance<T>(entityClass: Constructor<T>): Repository<T> {
-        const entityName = entityClass.name.toLowerCase();
+    public static instance<T>(entityName:string): Repository<T> {
+        entityName= entityName.toLowerCase();
         if (!Repository.instances.has(entityName)) {
-            Repository.instances.set(entityName, new Repository(entityClass));
+            Repository.instances.set(entityName, new Repository(entityName));
         }
         return Repository.instances.get(entityName);
     }
