@@ -1,0 +1,17 @@
+{
+    "name": "account",
+    "fields": {
+        "name": [
+            "string",
+            "empty"
+        ],
+        "email": [
+            "string",
+            "empty@email.com"
+        ],
+        "password": [
+            "string",
+            ""
+        ]
+    }
+}
