@@ -1,9 +1,8 @@
-import { RegisterResult } from "../../shared/router/AuthRouter";
-import { AccountEntity } from "../../shared/types/Account";
-import { aesDecrypt, aesEncrypt, hashGenerate } from "../methods/crypto";
-import Repository from "../lib/repository";
+import { RegisterResult } from "../../../shared/modules/auth/auth.router";
+import { aesDecrypt, aesEncrypt, hashGenerate } from "../../methods/crypto";
+import Repository from "../../lib/repository";
 
-const accountRepository = Repository.instance(AccountEntity);
+const accountRepository = Repository.instance("Account");
 
 export async function loginUser(email: string, password: string): Promise<{ token?: string }> {
     password = hashGenerate(password);
