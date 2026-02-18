@@ -1,39 +1,54 @@
-import { Express, Request, Response } from "express";
 import { BaseRouterInstance } from "../../shared/lib/default/decorator";
 
-export function mounthttp(expressApp: Express, controllers: BaseRouterInstance[]) {
-    const interfaceList: Array<{ base: string; prefix: string; path: string; method: string }> = [];
-    console.log("---------------");
+export async function mounthttp(req: Request, controllers: BaseRouterInstance[]): Promise<Response | null> {
+    const url = new URL(req.url);
+    const pathName = url.pathname;
+    const method = req.method.toLowerCase();
+
     for (const controller of controllers) {
-        console.log(`Controller ${controller.prefix} is registering with ${controller.router.length} routes.`);
         const { base, prefix, router } = controller;
         for (const item of router) {
-            const { path, method, handler } = item;
-            if (interfaceList.some((item) => item.prefix === prefix && item.path === path && item.method === method)) {
-                throw new Error(`Duplicate route found: ${prefix}${path} with method ${method}`);
-            } else {
-                interfaceList.push({ base, prefix, path, method });
-            }
-            if (!handler || typeof handler !== "function") {
-                throw new Error(`Handler method "${method}" for route ${prefix}${path} is not valid.`);
-            }
-            if (!(method === "get" || method === "post" || method === "put" || method === "delete")) {
-                throw new Error(
-                    `Invalid method ${method} for route ${prefix}${path}. Supported methods are: get, post, put, delete.`
-                );
-            }
-            expressApp[method](`${base}${prefix}${path}`, async (req: Request, res: Response) => {
-                const auth = req.headers["token"];
-                switch (method) {
-                    case "get":
-                        res.send(await handler({ ...req.query, auth }));
-                        break;
-                    case "post":
-                        res.send(await handler({ ...req.body, auth }));
-                        break;
+            const { path, method: routeMethod, handler } = item;
+            const fullPath = `${base}${prefix}${path}`;
+
+            if (pathName === fullPath && method === routeMethod) {
+                const auth = req.headers.get("token");
+                let data: any = {};
+
+                if (method === "get") {
+                    data = Object.fromEntries(url.searchParams.entries());
+                } else if (method === "post") {
+                    try {
+                        data = await req.json();
+                    } catch (e) {
+                        data = {};
+                    }
                 }
-            });
+
+                const result = await handler({ ...data, auth });
+                
+                return new Response(JSON.stringify(result), {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                        "Access-Control-Allow-Headers": "Content-Type, token",
+                    },
+                });
+            }
         }
     }
-    console.log("---------------");
+
+    // Handle OPTIONS for CORS
+    if (method === "options") {
+        return new Response(null, {
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, token",
+            },
+        });
+    }
+
+    return null;
 }
