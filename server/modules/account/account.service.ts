@@ -1,32 +1,31 @@
 import Repository from "../../lib/repository";
-import { AccountDTO } from "../../../shared/modules/account/account.dto";
 import { AccountEntity } from "../../../shared/modules/account/account.entity";
 
 const accountRepository: Repository<AccountEntity> = Repository.instance("Account");
 
 export class AccountService {
-    // 获取列表
-    static async findAll(query: any): Promise<{ list: AccountDTO[], total: number }> {
-        const list = await accountRepository.find(query) as AccountEntity[];
-        return {
-            list: list as unknown as AccountDTO[], // 这里通常需要一个转换函数
-            total: list.length
-        };
+    static async find(page: number, filter: Partial<AccountEntity>): Promise<{ list: AccountEntity[], total: number }> {
+        const list = await accountRepository.find(filter, { offset: (page - 1) * 10, limit: 10 });
+        const total = await accountRepository.count(filter);
+        return { list, total };
     }
 
-    static async findOne(id: string): Promise<AccountDTO> {
+    static async findOne(id: string): Promise<AccountEntity | null> {
         const result = await accountRepository.findOne({ id });
-        return result as unknown as AccountDTO;
+        if (!result) return null;
+        return result;
     }
 
-    static async create(data: Partial<AccountDTO>): Promise<AccountDTO> {
+    static async create(data: Partial<AccountEntity>): Promise<AccountEntity> {
         const result = await accountRepository.insert(data);
-        return result as unknown as AccountDTO;
+        return result;
     }
 
-    static async update(id: string, data: Partial<AccountDTO>): Promise<AccountDTO> {
+    static async update(id: string, data: Partial<AccountEntity>): Promise<AccountEntity | null> {
         await accountRepository.update({ id }, data);
-        return this.findOne(id);
+        const result = await accountRepository.findOne({ id });
+        if (!result) return null;
+        return result;
     }
 
     static async delete(id: string): Promise<void> {

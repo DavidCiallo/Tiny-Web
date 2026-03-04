@@ -1,12 +1,13 @@
 import { RegisterResult } from "../../../shared/modules/auth/auth.router";
 import { aesDecrypt, aesEncrypt, hashGenerate } from "../../methods/crypto";
+import { AccountEntity } from "../../../shared/modules/account/account.entity";
 import Repository from "../../lib/repository";
 
-const accountRepository = Repository.instance("Account");
+const accountRepository: Repository<AccountEntity> = Repository.instance("Account");
 
 export async function loginUser(email: string, password: string): Promise<{ token?: string }> {
     password = hashGenerate(password);
-    const emailItem = await accountRepository.findOne({ email, password });
+    const emailItem = await accountRepository.findOne({  });
     if (emailItem) {
         return { token: genTokenForIdentify(email) };
     } else {
@@ -20,7 +21,7 @@ export async function registerUser(name: string, email: string, password: string
         return { success: false };
     }
     password = hashGenerate(password);
-    accountRepository.insert({ name, email, password });
+    await accountRepository.insert({ name, email, password });
     return { success: true };
 }
 
