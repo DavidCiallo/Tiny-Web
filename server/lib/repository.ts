@@ -1,211 +1,197 @@
-import fs from "fs";
+import { Database } from "bun:sqlite";
 import path from "path";
 import { nanoid } from "nanoid";
+import fs from "fs";
 
-const DB_PATH = "data";
+const DB_DIR = "data";
+const DB_FILE = "tiny_web.db";
 
-class Repository<T> {
-    public name: string;
-    private filePath: string;
-    private cache: T[] = [];
-    private isInitialized: boolean = false;
+// Ensure data directory exists
+if (!fs.existsSync(DB_DIR)) {
+    fs.mkdirSync(DB_DIR);
+}
 
+// Single database connection for the entire app
+const db = new Database(path.join(DB_DIR, DB_FILE));
+
+class Repository<T extends { id?: string; create_time?: number | null; update_time?: number | null; delete_time?: number | null }> {
+    private tableName: string;
     private static instances = new Map<string, any>();
-    /**
-     * @param entityClass The class of the entity this repository will manage.
-     */
-    private constructor(private entityName: string) {
-        this.name = entityName.toLowerCase().replace("entity", "");
-        this.filePath = path.join(`./${DB_PATH}`, `${this.name}.json`);
+
+    private constructor(entityName: string) {
+        this.tableName = entityName.toLowerCase().replace("entity", "");
+        // Validate table name to prevent SQL injection
+        if (!/^[a-z][a-z0-9_]*$/.test(this.tableName)) {
+            throw new Error(`Invalid table name: ${this.tableName}`);
+        }
+        this.ensureTable();
     }
 
-    public static instance<T>(entityName:string): Repository<T> {
-        entityName= entityName.toLowerCase();
+    public static instance<T extends { id?: string; create_time?: number | null; update_time?: number | null; delete_time?: number | null }>(entityName: string): Repository<T> {
+        entityName = entityName.toLowerCase();
         if (!Repository.instances.has(entityName)) {
             Repository.instances.set(entityName, new Repository(entityName));
         }
         return Repository.instances.get(entityName);
     }
-    private initialize(): void {
-        if (this.isInitialized) {
-            return;
-        }
-
-        try {
-            if (!fs.existsSync(`./${DB_PATH}`)) {
-                fs.mkdirSync(`./${DB_PATH}`);
-            }
-            if (!fs.existsSync(this.filePath)) {
-                fs.writeFileSync(this.filePath, "[]");
-            }
-            this.loadData();
-        } catch (error) {
-            console.warn(`Data file not found for ${this.name}. Creating a new one.`);
-            this.saveData([]);
-        }
-
-        this.isInitialized = true;
-    }
 
     /**
-     * A private helper to load data from the JSON file into the cache.
+     * Minimalist table creation.
+     * Note: In a production app with Drizzle, this would be handled by migrations.
+     * Here we use a flexible JSON-like storage approach within SQLite or basic columns.
      */
-    private loadData(): void {
-        try {
-            const data = fs.readFileSync(this.filePath).toString();
-            this.cache = JSON.parse(data);
-        } catch (error) {
-            console.error(`Failed to load data for ${this.name}:`, error);
-            this.cache = [];
-        }
+    private ensureTable() {
+        // We'll use a slightly more structured approach: id, data (JSON), create_time, update_time, delete_time
+        // This allows us to handle dynamic schemas without complex migrations,
+        // while still benefiting from SQLite's indexing and performance.
+        db.run(`
+            CREATE TABLE IF NOT EXISTS ${this.tableName} (
+                id TEXT PRIMARY KEY,
+                data TEXT,
+                create_time INTEGER,
+                update_time INTEGER,
+                delete_time INTEGER
+            )
+        `);
     }
 
-    /**
-     * A private helper to save the current cache to the JSON file.
-     * @param data The data array to save. If not provided, it saves the current cache.
-     */
-    private saveData(data: T[] = this.cache): void {
-        try {
-            this.cache = data;
-            if (Math.random() < 1) {
-                fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2));
-            }
-        } catch (error) {
-            console.error(`Failed to save data for ${this.name}:`, error);
-        }
-    }
-
-    /**
-     * Filters the cache based on the provided conditions.
-     * @param where An object containing key-value pairs to match.
-     * @returns A filtered array of entities.
-     */
-    private filterData(where?: Partial<T>): T[] {
-        if (!where || Object.keys(where).length === 0) {
-            return this.cache;
-        }
-
-        return this.cache.filter((entity) => {
-            return Object.entries(where).every(([key, value]) => {
-                // Handle cases where the value in `where` is null or undefined
-                const entityValue = (entity as any)[key];
-                if (value === null || value === undefined) {
-                    return entityValue === null || entityValue === undefined;
-                }
-                return entityValue === value;
-            });
-        });
-    }
-
-    /**
-     * Counts the number of entities that match the optional `where` clause.
-     * @param where An optional object for filtering.
-     * @returns The number of matching entities.
-     */
-    async count(where?: Partial<T>): Promise<number> {
-        this.initialize();
-        return this.filterData(where).length;
-    }
-
-    /**
-     * Finds all entities that match the optional `where` clause.
-     * @param where An optional object for filtering.
-     * @param config An optional object for limiting and offsetting results.
-     * @returns An array of matching entities.
-     */
     async find(where?: Partial<T>, config?: { limit?: number; offset?: number }): Promise<T[]> {
-        this.initialize();
-        const filteredData = this.filterData(where);
-        const start = config?.offset || 0;
-        const end = start + (config?.limit || filteredData.length);
-        return filteredData.slice(start, end);
+        let sql = `SELECT * FROM ${this.tableName} WHERE delete_time IS NULL`;
+        const params: any[] = [];
+
+        // Apply WHERE conditions at SQL level for better performance
+        if (where && Object.keys(where).length > 0) {
+            const conditions: string[] = [];
+            Object.entries(where).forEach(([key, val]) => {
+                if (val === undefined || val === null || val === "") return;
+                if (['id', 'create_time', 'update_time', 'delete_time'].includes(key)) {
+                    conditions.push(`${key} = ?`);
+                    params.push(val);
+                } else {
+                    conditions.push(`json_extract(data, '$.${key}') = ?`);
+                    params.push(val);
+                }
+            });
+            if (conditions.length > 0) {
+                sql += ` AND ${conditions.join(' AND ')}`;
+            }
+        }
+
+        // Apply LIMIT and OFFSET at SQL level
+        if (config?.limit) {
+            sql += ` LIMIT ?`;
+            params.push(config.limit);
+        }
+        if (config?.offset) {
+            sql += ` OFFSET ?`;
+            params.push(config.offset);
+        }
+
+        const rows = db.query(sql).all(...params) as any[];
+
+        return rows.map(row => ({
+            ...JSON.parse(row.data),
+            id: row.id,
+            create_time: row.create_time,
+            update_time: row.update_time,
+            delete_time: row.delete_time
+        }));
     }
 
-    /**
-     * Finds a single entity that matches the `where` clause.
-     * @param where An object for filtering.
-     * @returns The first matching entity, or undefined.
-     */
     async findOne(where: Partial<T>): Promise<T | null> {
-        this.initialize();
-        const entity = this.filterData(where)[0];
-        if (!entity) return null;
-        return this.filterData(where)[0];
+        const results = await this.find(where, { limit: 1 });
+        return results.length > 0 ? results[0] : null;
     }
 
-    /**
-     * Inserts a new entity. It generates a unique ID for the entity.
-     * @param entity A partial entity object to insert.
-     * @returns True if the insertion was successful.
-     */
-    async insert(entity: Partial<T>): Promise<string> {
-        this.initialize();
-        const id = nanoid(6);
-        const create_time = Date.now();
-        const newEntity = { ...entity, id, create_time } as T;
-        this.cache.push(newEntity);
-        this.saveData();
-        return id;
+    async insert(entity: Partial<T>): Promise<T> {
+        const id = entity.id || nanoid(6);
+        const now = Date.now();
+        const { id: _, create_time: __, update_time: ___, ...data } = entity as any;
+
+        const query = db.prepare(`
+            INSERT INTO ${this.tableName} (id, data, create_time, update_time)
+            VALUES (?, ?, ?, ?)
+        `);
+
+        query.run(id, JSON.stringify(data), now, now);
+        return { ...data, id, create_time: now, update_time: now } as T;
     }
 
-    /**
-     * Inserts more entities into the cache.
-     * @param entities An array of partial entity objects to insert.
-     * @returns True if the insertion was successful.
-     */
-    async insertMany(entities: Partial<T>[]): Promise<boolean> {
-        this.initialize();
-        const create_time = Date.now();
-        const newEntities = entities.map((entity, index) => {
-            const id = nanoid(6);
-            return { ...entity, id, create_time } as T;
-        });
-        this.cache.push(...(newEntities as Array<T>));
-        this.saveData();
+    async update(where: Partial<T>, updateData: Partial<T>): Promise<boolean> {
+        // Build WHERE clause conditions
+        const conditions: string[] = ['delete_time IS NULL'];
+        const params: any[] = [];
+
+        if (where && Object.keys(where).length > 0) {
+            Object.entries(where).forEach(([key, val]) => {
+                if (['id', 'create_time', 'update_time', 'delete_time'].includes(key)) {
+                    conditions.push(`${key} = ?`);
+                    params.push(val);
+                } else {
+                    conditions.push(`json_extract(data, '$.${key}') = ?`);
+                    params.push(val);
+                }
+            });
+        }
+
+        // For JSON data update, we need to fetch and merge since SQLite lacks JSON patch
+        const targets = await this.find(where);
+        if (targets.length === 0) return false;
+
+        const now = Date.now();
+        const updateStmt = db.prepare(`
+            UPDATE ${this.tableName} SET data = ?, update_time = ? WHERE id = ?
+        `);
+
+        // Batch update all matching records
+        for (const target of targets) {
+            const { id, create_time, update_time, delete_time, ...oldData } = target as any;
+            const newData = { ...oldData, ...updateData };
+            updateStmt.run(JSON.stringify(newData), now, id);
+        }
+
         return true;
     }
 
-    /**
-     * Updates entities that match the `where` clause with new data.
-     * @param where An object to find the entities to update.
-     * @param updateData An object with the new data to apply.
-     * @returns True if at least one entity was updated.
-     */
-    async update(where: Partial<T>, updateData: Partial<T>): Promise<boolean> {
-        this.initialize();
-        let updatedCount = 0;
-        const newCache = this.cache.map((entity) => {
-            // Check if the entity matches the `where` clause
-            if (Object.entries(where).every(([key, value]) => (entity as any)[key] === value)) {
-                updatedCount++;
-                return { ...entity, ...updateData, update_time: Date.now() };
-            }
-            return entity;
-        });
+    async delete(where: Partial<T>): Promise<boolean> {
+        const targets = await this.find(where);
+        if (targets.length === 0) return false;
 
-        if (updatedCount > 0) {
-            this.saveData(newCache);
+        // Soft delete by setting delete_time
+        const now = Date.now();
+        const updateStmt = db.prepare(`
+            UPDATE ${this.tableName} SET delete_time = ? WHERE id = ?
+        `);
+        for (const target of targets) {
+            updateStmt.run(now, (target as any).id);
         }
-        return updatedCount > 0;
+        return true;
     }
 
-    /**
-     * Deletes entities that match the `where` clause.
-     * This is a new method added for completeness.
-     * @param where An object to find the entities to delete.
-     * @returns True if at least one entity was deleted.
-     */
-    delete(where: Partial<T>): boolean {
-        this.initialize();
-        const initialCount = this.cache.length;
-        const newCache = this.cache.filter((entity) => {
-            return !Object.entries(where).every(([key, value]) => (entity as any)[key] === value);
-        });
-        const deletedCount = initialCount - newCache.length;
-        if (deletedCount > 0) {
-            this.saveData(newCache);
+    async count(where?: Partial<T>): Promise<number> {
+        let sql = `SELECT COUNT(*) as count FROM ${this.tableName} WHERE delete_time IS NULL`;
+        const params: any[] = [];
+
+        // Apply WHERE conditions at SQL level
+        if (where && Object.keys(where).length > 0) {
+            const conditions: string[] = [];
+            Object.entries(where).forEach(([key, val]) => {
+                if (val === undefined || val === null || val === "") return;
+                if (['id', 'create_time', 'update_time', 'delete_time'].includes(key)) {
+                    conditions.push(`${key} = ?`);
+                    params.push(val);
+                } else {
+                    conditions.push(`json_extract(data, '$.${key}') = ?`);
+                    params.push(val);
+                }
+            });
+            if (conditions.length > 0) {
+                sql += ` AND ${conditions.join(' AND ')}`;
+            }
         }
-        return deletedCount > 0;
+
+        const result = db.query(sql).get(...params) as any;
+        return result?.count || 0;
     }
 }
 

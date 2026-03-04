@@ -9,14 +9,7 @@ export class HttpClientService {
         }
         return HttpClientService.instance;
     }
-    public async get(url: string, query: URLSearchParams) {
-        const final_url = url + "?" + new URLSearchParams(query).toString();
-        const data = fetch(final_url, {
-            method: "get",
-            headers: { Token: localStorage.getItem("access_token") || "" },
-        }).then((r) => r.json());
-        return data;
-    }
+
     public async post(url: string, body: any) {
         const data = fetch(url, {
             method: "post",
