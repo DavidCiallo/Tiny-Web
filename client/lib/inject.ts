@@ -4,7 +4,6 @@ import { HttpClientService } from "./webhttp";
 export function inject(instance: BaseRouterInstance) {
     const http = HttpClientService.getInstance();
     const { base, prefix, router } = instance;
-    console.log( base, prefix,router);
     router.forEach((route: Route) => {
         route.handler = null;
         const { path } = route;

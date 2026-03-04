@@ -1,7 +1,6 @@
 import { config } from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";
-import { WebSocketServer } from "ws";
 
 // 中间件-各级路由
 import { mounthttp } from "../lib/mount";
@@ -52,8 +51,5 @@ const server = Bun.serve({
         return new Response("Not Found", { status: 404 });
     },
 });
-
-// WebSocket 处理
-const wss = new WebSocketServer({ server: server as any, path: "/ws" });
 
 console.log(`Server is running at http://localhost:${PORT}`);

@@ -48,7 +48,6 @@ async function create(request: AccountCreateRequest): Promise<AccountCreateRespo
         throw "miss params";
     }
     request.account = AccountCreateBody.self(request.account);
-    console.log(request.account);
     const data = await AccountService.create(request.account);
     if (!data) throw "create failed";
     const account = new AccountDTO(data);
