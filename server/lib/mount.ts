@@ -8,25 +8,19 @@ export async function mounthttp(req: Request, controllers: BaseRouterInstance[])
     for (const controller of controllers) {
         const { base, prefix, router } = controller;
         for (const item of router) {
-            const { path, method: routeMethod, handler } = item;
+            const { path, handler } = item;
             const fullPath = `${base}${prefix}${path}`;
 
-            if (pathName === fullPath && method === routeMethod) {
+            if (pathName === fullPath) {
                 const auth = req.headers.get("token");
-                let data: any = {};
-
-                if (method === "get") {
-                    data = Object.fromEntries(url.searchParams.entries());
-                } else if (method === "post") {
-                    try {
-                        data = await req.json();
-                    } catch (e) {
-                        data = {};
-                    }
+                let requestBody: Record<string, any> | null = {};
+                try {
+                    requestBody = await req.json();
+                } catch (e) {
+                    requestBody = null;
                 }
+                const result = handler && await handler({ ...requestBody, auth });
 
-                const result = await handler({ ...data, auth });
-                
                 return new Response(JSON.stringify(result), {
                     headers: {
                         "Content-Type": "application/json",
@@ -39,7 +33,6 @@ export async function mounthttp(req: Request, controllers: BaseRouterInstance[])
         }
     }
 
-    // Handle OPTIONS for CORS
     if (method === "options") {
         return new Response(null, {
             headers: {

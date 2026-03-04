@@ -2,7 +2,7 @@ export interface BaseRequest {
     auth?: string;
 }
 
-type Value = string | number | boolean | undefined | null | { [key: string]: Value } | Value[];
+type Value = string | number | boolean | null | { [key: string]: Value } | Value[];
 
 export interface BaseResponse<T> {
     success: boolean;
@@ -10,16 +10,11 @@ export interface BaseResponse<T> {
     message?: string;
 }
 
-export type Route = { path: string; method: string; handler: Function | null };
+export type Route = { path: string; handler: Function | null };
 
-export type HTTPMethodConstructor = Route;
 export class BaseRouterInstance {
     base!: string;
     prefix!: string;
-    router!: Array<{
-        path: string;
-        method: string;
-        handler: Function | null;
-    }>;
-    [key: string]: string | Function | HTTPMethodConstructor[] | ((...args: any) => Promise<any>);
+    router!: Array<{ path: string; handler: Function | null; }>;
+    [key: string]: string | Function | Route[];
 }
