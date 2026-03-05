@@ -6,17 +6,18 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "../../methods/notify";
 import { setAuthStatus, setUserInfo } from "../../methods/auth";
 import { Locale } from "../../methods/locale";
+import { LoginBody, LoginRequest } from "../../../shared/modules/auth/auth.interface";
 
 export default function Component() {
     const navigate = useNavigate();
     const locale = Locale("AuthPage");
+
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const { email, password } = Object.fromEntries(new FormData(event.currentTarget));
-        const { success, data, message } = await AuthRouter.login({
-            email: email.toString(),
-            password: password.toString(),
-        });
+        const email = String(new FormData(event.currentTarget).get("email"));
+        const password = String(new FormData(event.currentTarget).get("password"));
+
+        const { success, data, message } = await AuthRouter.login(new LoginRequest({ identify: new LoginBody({ email, password }) }));
         if (!success || !data) {
             toast({ title: message || locale.LoginFailed, color: "danger" });
             return;
@@ -34,7 +35,7 @@ export default function Component() {
             <div className="rounded-large flex w-full max-w-sm flex-col gap-4 px-8 pt-[20vh]">
                 <p className="pb-4 text-left text-3xl font-semibold">
                     <span aria-label="emoji" className="mr-4" role="img">
-                        😄
+                        📖
                     </span>
                     {locale.Title}
                 </p>
