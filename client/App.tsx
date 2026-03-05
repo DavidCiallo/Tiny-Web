@@ -13,12 +13,10 @@ const PrivateRoute = ({ redirectPath = "/auth" }) => {
     const isAuthenticated = getAuthStatus() == AuthStatus.AUTH;
     if (!isAuthenticated) {
         clearAuthData();
-        location.reload();
     }
     AuthRouter.alive(new AliveRequest({ auth: localStorage.getItem("access_token")! })).then(({ success }) => {
         if (!success) {
             clearAuthData();
-            location.reload();
         }
     })
     return isAuthenticated ? <Outlet /> : <Navigate to={redirectPath} replace />;
