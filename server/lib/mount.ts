@@ -1,4 +1,5 @@
 import { BaseRouterInstance } from "../../shared/lib/default/decorator";
+import path from "path";
 
 export async function mounthttp(req: Request, controllers: BaseRouterInstance[]): Promise<Response | null> {
     const url = new URL(req.url);
@@ -41,6 +42,35 @@ export async function mounthttp(req: Request, controllers: BaseRouterInstance[])
                 "Access-Control-Allow-Headers": "Content-Type, token",
             },
         });
+    }
+
+    return null;
+}
+
+const validStaticFiles = new Set<string>();
+
+export async function mountstatic(staticPath: string, pathName: string) {
+    if (pathName.endsWith(".mjs")) {
+        return new Response("Forbidden", { status: 403 });
+    }
+
+    let filePath = path.join(staticPath, pathName);
+    if (pathName === "/") {
+        filePath = path.join(staticPath, "index.html");
+    }
+    if (!validStaticFiles.has(filePath)) {
+        const file = Bun.file(filePath);
+        if (await file.exists()) {
+            validStaticFiles.add(filePath);
+            return new Response(file);
+        }
+    } else {
+        const file = Bun.file(filePath);
+        return new Response(file);
+    }
+
+    if (!pathName.startsWith("/api")) {
+        return new Response(Bun.file(path.join(staticPath, "index.html")));
     }
 
     return null;
