@@ -1,41 +1,30 @@
-import {
-    AliveRequest,
-    AliveResponse,
-    AuthBody,
-    AuthRouterInstance,
-    LoginResult,
-    RegisterResult,
-} from "../../../shared/modules/auth/auth.router";
+import { AliveRequest, AliveResponse, LoginRequest, LoginResponse, } from "../../../shared/modules/auth/auth.interface";
+import { AuthRouterInstance } from "../../../shared/modules/auth/auth.router";
 import { inject } from "../../lib/inject";
-import { getIdentifyByVerify, loginUser, registerUser } from "./auth.service";
+import { getIdentifyByVerify, loginUser } from "./auth.service";
 
 async function alive(request: AliveRequest): Promise<AliveResponse> {
+    request = AliveRequest.self(request);
     const { auth } = request;
     if (auth && getIdentifyByVerify(auth)) {
-        return { success: true };
+        return new AliveResponse({ success: true, message: "Authorized" });
     } else {
-        return { success: false };
+        return new AliveResponse({ success: false, message: "Unauthorized" });
     }
 }
 
-async function login(request: AuthBody): Promise<LoginResult> {
-    const { email, password } = request;
-    if (email && password) {
-        const { token } = await loginUser(email, password);
-        if (!token) {
-            return { success: false, message: "账号或密码错误" };
-        }
-        return { success: true, data: { token } };
+async function login(request: LoginRequest): Promise<LoginResponse> {
+    request = LoginRequest.self(request);
+    const { identify } = request;
+    if (!identify) {
+        throw "Authorized failed";
     }
-    return { success: false, message: "缺少参数" };
+    const { email, password } = request.identify;
+    const { token } = await loginUser(email, password);
+    if (!token) {
+        return new LoginResponse({ success: false, message: "账号或密码错误", data: { token: "" } });
+    }
+    return new LoginResponse({ success: true, message: "Login success", data: { token } });
 }
 
-async function register(request: AuthBody): Promise<RegisterResult> {
-    if (!request.email || !request.password) {
-        return { success: false };
-    }
-    const result = await registerUser(request.name || "", request.email, request.password);
-    return result;
-}
-
-export const authController = new AuthRouterInstance(inject, { alive, login, register });
+export const authController = new AuthRouterInstance(inject, { alive, login });

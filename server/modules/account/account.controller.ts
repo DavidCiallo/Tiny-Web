@@ -1,13 +1,26 @@
 import { AccountEntity } from "../../../shared/modules/account/account.entity";
-import { AccountCreateBody, AccountCreateRequest, AccountCreateResponse, AccountDeleteResponse, AccountDetailRequest, AccountDetailResponse, AccountDTO, AccountListRequest, AccountListResponse, AccountQueryBody, AccountUpdateBody, AccountUpdateRequest, AccountUpdateResponse } from "../../../shared/modules/account/account.interface";
-import { AccountRouterInstance, } from "../../../shared/modules/account/account.router"
+import {
+    AccountDTO,
+    AccountCreateRequest,
+    AccountCreateResponse,
+    AccountListRequest,
+    AccountListResponse,
+    AccountDetailRequest,
+    AccountDetailResponse,
+    AccountUpdateRequest,
+    AccountUpdateResponse,
+    AccountDeleteRequest,
+    AccountDeleteResponse,
+} from "../../../shared/modules/account/account.interface";
+import { AccountRouterInstance } from "../../../shared/modules/account/account.router"
 import { inject } from "../../lib/inject";
+import { getIdentifyByVerify } from "../auth/auth.service";
 import { AccountService } from "./account.service";
 
 async function list(request: AccountListRequest): Promise<AccountListResponse> {
     request = AccountListRequest.self(request);
     const { page, auth, filter } = request;
-    if (!auth) {
+    if (!auth || !getIdentifyByVerify(auth)) {
         throw "Authorization failed"
     }
 
@@ -28,7 +41,7 @@ async function list(request: AccountListRequest): Promise<AccountListResponse> {
 async function detail(request: AccountDetailRequest): Promise<AccountDetailResponse> {
     request = AccountDetailRequest.self(request);
     const { id, auth } = request;
-    if (!auth) {
+    if (!auth || !getIdentifyByVerify(auth)) {
         throw "Authorization failed"
     }
     const data = await AccountService.findOne(id);
@@ -44,10 +57,14 @@ async function detail(request: AccountDetailRequest): Promise<AccountDetailRespo
 }
 
 async function create(request: AccountCreateRequest): Promise<AccountCreateResponse> {
-    if (!request || !request.account) {
+    request = AccountCreateRequest.self(request);
+    if (!request.account) {
         throw "miss params";
     }
-    request.account = AccountCreateBody.self(request.account);
+    const { auth } = request;
+    if (!auth || !getIdentifyByVerify(auth)) {
+        throw "Authorization failed"
+    }
     const data = await AccountService.create(request.account);
     if (!data) throw "create failed";
     const account = new AccountDTO(data);
@@ -57,11 +74,16 @@ async function create(request: AccountCreateRequest): Promise<AccountCreateRespo
         message: "success"
     });
 }
+
 async function update(request: AccountUpdateRequest): Promise<AccountUpdateResponse> {
+    request = AccountUpdateRequest.self(request);
+    const { auth } = request;
+    if (!auth || !getIdentifyByVerify(auth)) {
+        throw "Authorization failed"
+    }
     if (!request || !request.id || !request.account) {
         throw "miss params";
     }
-    request.account = AccountUpdateBody.self(request.account);
     const data = await AccountService.update(request.id, request.account);
     if (!data) {
         throw "update failed";
@@ -74,7 +96,8 @@ async function update(request: AccountUpdateRequest): Promise<AccountUpdateRespo
     });
 }
 
-async function del(request: AccountDetailRequest): Promise<AccountDeleteResponse> {
+async function del(request: AccountDeleteRequest): Promise<AccountDeleteResponse> {
+    request = AccountDeleteRequest.self(request);
     if (!request) {
         throw "Delete wrong"
     }

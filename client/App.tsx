@@ -6,12 +6,21 @@ import { toast } from "./methods/notify";
 import HomePage from "./pages/home/HomePage";
 import { AuthStatus, clearAuthData, getAuthStatus } from "./methods/auth";
 import DemoPage from "./pages/demo/DemoPage";
+import { AuthRouter } from "./api/instance";
+import { AliveRequest } from "../shared/modules/auth/auth.interface";
 
 const PrivateRoute = ({ redirectPath = "/auth" }) => {
     const isAuthenticated = getAuthStatus() == AuthStatus.AUTH;
     if (!isAuthenticated) {
         clearAuthData();
+        location.reload();
     }
+    AuthRouter.alive(new AliveRequest({ auth: localStorage.getItem("access_token")! })).then(({ success }) => {
+        if (!success) {
+            clearAuthData();
+            location.reload();
+        }
+    })
     return isAuthenticated ? <Outlet /> : <Navigate to={redirectPath} replace />;
 };
 
