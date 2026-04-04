@@ -14,8 +14,10 @@ export default function Component() {
         event.preventDefault();
         const { email, password } = Object.fromEntries(new FormData(event.currentTarget));
         const { success, data, message } = await AuthRouter.login({
-            email: email.toString(),
-            password: password.toString(),
+            identify: {
+                email: email.toString(),
+                password: password.toString(),
+            },
         });
         if (!success || !data) {
             toast({ title: message || locale.LoginFailed, color: "danger" });

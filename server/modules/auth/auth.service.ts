@@ -1,9 +1,8 @@
-import { RegisterResult } from "../../shared/router/AuthRouter";
-import { AccountEntity } from "../../shared/types/Account";
-import { aesDecrypt, aesEncrypt, hashGenerate } from "../methods/crypto";
-import Repository from "../lib/repository";
+import { aesDecrypt, aesEncrypt, hashGenerate } from "../../methods/crypto";
+import { AccountEntity } from "../../../shared/modules/account/account.entity";
+import Repository from "../../lib/repository";
 
-const accountRepository = Repository.instance(AccountEntity);
+const accountRepository: Repository<AccountEntity> = Repository.instance("Account");
 
 export async function loginUser(email: string, password: string): Promise<{ token?: string }> {
     password = hashGenerate(password);
@@ -15,17 +14,12 @@ export async function loginUser(email: string, password: string): Promise<{ toke
     }
 }
 
-export async function registerUser(name: string, email: string, password: string): Promise<RegisterResult> {
-    const emailItem = await accountRepository.findOne({ email });
-    if (emailItem) {
-        return { success: false };
-    }
+export async function registerUser(name: string, email: string, password: string): Promise<AccountEntity | null> {
+    const exist = await accountRepository.findOne({ email });
+    if (exist) { return null; }
     password = hashGenerate(password);
-    accountRepository.insert({ name, email, password });
-    return { success: true };
+    return await accountRepository.insert({ name, email, password });
 }
-
-registerUser("管理员", "mail@example.com", "demo123@");
 
 export function genTokenForIdentify(identity: string, expried: number = 1000 * 60 * 60 * 24): string {
     expried = Date.now() + expried;

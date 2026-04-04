@@ -1,17 +1,19 @@
 import { Header } from "../../components/header/Header";
 import { useEffect, useState } from "react";
-import { DemoImpl } from "../../../shared/impl";
+import { DemoDTO } from "../../../shared/modules/demo/demo.entity";
 import { DemoRouter } from "../../api/instance";
 import { Locale } from "../../methods/locale";
 
 const DemoPage = () => {
-    const [DemoList, setDemoList] = useState<Array<DemoImpl>>([]);
+    const [DemoList, setDemoList] = useState<DemoDTO[]>([]);
 
     useEffect(() => {
         (async () => {
-            const { success, data } = await DemoRouter.queryDemo({ name: "" });
-            const { list } = data;
-            setDemoList(list);
+            const token = localStorage.getItem("access_token");
+            const { success, data } = await DemoRouter.list({ page: 1, auth: token });
+            if (success && data) {
+                setDemoList(data.list);
+            }
         })();
     }, []);
 
