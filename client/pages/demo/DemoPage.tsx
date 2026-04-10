@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { DemoDTO } from "../../../shared/modules/demo/demo.entity";
 import { DemoRouter } from "../../api/instance";
 import { Locale } from "../../methods/locale";
+import { AccountDTO, AccountListRequest } from "../../../shared/modules/account/account.interface";
+import { AccountRouter } from "../../api/instance";
 
 const DemoPage = () => {
     const [DemoList, setDemoList] = useState<DemoDTO[]>([]);

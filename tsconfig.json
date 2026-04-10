@@ -18,8 +18,7 @@
     /* type checking */
     "strict": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "strictPropertyInitialization": false
+    "noUnusedParameters": true
   },
   "include": [
     "shared",
