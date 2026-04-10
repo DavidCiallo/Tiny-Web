@@ -1,12 +1,5 @@
 import { BaseRouterInstance } from "../../shared/lib/default/decorator";
 import path from "path";
-import { BaseRouterInstance } from "../../shared/lib/default/decorator";
-import path from "path";
-
-export async function mounthttp(req: Request, controllers: BaseRouterInstance[]): Promise<Response | null> {
-    const url = new URL(req.url);
-    const pathName = url.pathname;
-    const method = req.method.toLowerCase();
 
 export async function mounthttp(req: Request, controllers: BaseRouterInstance[]): Promise<Response | null> {
     const url = new URL(req.url);

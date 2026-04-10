@@ -1,5 +1,4 @@
 import { BaseRouterInstance } from "../../shared/lib/default/decorator";
-import { BaseRouterInstance } from "../../shared/lib/default/decorator";
 
 export function inject(instance: BaseRouterInstance, functions: Record<string, Function>) {
     instance.router.forEach((route) => {
