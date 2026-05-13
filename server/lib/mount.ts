@@ -5,6 +5,7 @@ export async function mounthttp(req: Request, controllers: BaseRouterInstance[])
     const url = new URL(req.url);
     const pathName = url.pathname;
     const method = req.method.toLowerCase();
+    const requertQuery = Object.fromEntries(url.searchParams.entries());
 
     for (const controller of controllers) {
         const { base, prefix, router } = controller;
@@ -13,22 +14,42 @@ export async function mounthttp(req: Request, controllers: BaseRouterInstance[])
             const fullPath = `${base}${prefix}${path}`;
 
             if (pathName === fullPath) {
-                const auth = req.headers.get("token");
+                const auth = req.headers.get("token") || req.headers.get("x-api-key") || req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "");
                 let requestBody: Record<string, any> | null = {};
                 try {
-                    requestBody = await req.json();
+                    const contentType = req.headers.get("content-type") || "";
+                    const rawHeaders = Object.fromEntries(req.headers.entries());
+                    const rawBody = await req.text();
+                    if (contentType.includes("application/json")) {
+                        requestBody = JSON.parse(rawBody);
+                    } else if (contentType.includes("application/x-www-form-urlencoded")) {
+                        const params = new URLSearchParams(rawBody);
+                        requestBody = Object.fromEntries(params.entries());
+                    } else {
+                        try {
+                            requestBody = JSON.parse(rawBody);
+                        } catch {
+                            const params = new URLSearchParams(rawBody);
+                            requestBody = Object.fromEntries(params.entries());
+                        }
+                    }
+                    // 注入原始请求头和 body，供 webhook 签名验证使用
+                    (requestBody as any).__raw_body = rawBody;
+                    (requestBody as any).__headers = rawHeaders;
                 } catch (e) {
                     requestBody = null;
                 }
                 try {
-                    const result = handler && (await handler({ ...requestBody, auth }));
+                    const result = handler && (await handler({ ...requertQuery, ...requestBody, auth }));
+                    // 支持返回 Response 实例（流式或自定义响应）
+                    if (result instanceof Response) return result;
 
                     return new Response(JSON.stringify(result), {
                         headers: {
                             "Content-Type": "application/json",
                             "Access-Control-Allow-Origin": "*",
                             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                            "Access-Control-Allow-Headers": "Content-Type, token",
+                            "Access-Control-Allow-Headers": "Content-Type, token, Authorization, x-api-key",
                         },
                     });
                 } catch (error: any) {
@@ -43,7 +64,7 @@ export async function mounthttp(req: Request, controllers: BaseRouterInstance[])
                             "Content-Type": "application/json",
                             "Access-Control-Allow-Origin": "*",
                             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                            "Access-Control-Allow-Headers": "Content-Type, token",
+                            "Access-Control-Allow-Headers": "Content-Type, token, Authorization, x-api-key",
                         },
                     });
                 }
@@ -56,7 +77,7 @@ export async function mounthttp(req: Request, controllers: BaseRouterInstance[])
             headers: {
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, token",
+                "Access-Control-Allow-Headers": "Content-Type, token, Authorization, x-api-key",
             },
         });
     }
@@ -122,6 +143,8 @@ export function broadcastWsMessage(message: any) {
         try {
             ws.send(msgString);
         } catch (e) {
+            // 发送失败时从活跃列表中排除该连接
+            try { activeSockets.delete(ws); } catch (_) {}
             console.error("Failed to send WebSocket message", e);
         }
     }

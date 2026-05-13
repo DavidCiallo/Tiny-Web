@@ -2,7 +2,7 @@ import CN from "../locales/cn.json";
 import EN from "../locales/en.json";
 
 export function Locale(page: string): { [key: string]: string } {
-    const language = localStorage.getItem("locale") || "cn";
+    const language = localStorage.getItem("locale") || "en";
     let strMap: { [key: string]: string } = {};
 
     switch (language) {

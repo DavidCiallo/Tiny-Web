@@ -4,17 +4,24 @@ import path from "path";
 
 config();
 
-const staticPath = path.dirname(fileURLToPath(import.meta.url));
+const staticPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../dist");
 
+import { runMigrations } from "../lib/migrate";
 import { mounthttp, mountstatic } from "../lib/mount";
 import { authController } from "../modules/auth/auth.controller";
 import { demoController } from "../modules/demo/demo.controller";
+import { initialize } from "./initialize";
+
+runMigrations();
 
 const PORT = parseInt(process.env.SERVER_PORT || "3300");
+
+await initialize();
 
 // @ts-ignore
 Bun.serve({
     port: PORT,
+    idleTimeout: 255,
     async fetch(req) {
         const url = new URL(req.url);
         const pathName = url.pathname;

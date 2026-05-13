@@ -7,7 +7,7 @@
         "build": "rsbuild build",
         "dev": "rsbuild dev",
         "serve": "bun run server/app",
-        "reset": "rm -f data/tiny_web.db && bun drizzle-kit push && echo 'DB reset finish'"
+        "reset": "rm -f data/s.db && bun drizzle-kit push && echo 'DB reset finish'"
     },
     "dependencies": {
         "@heroui/react": "^2.8.0-beta.5",
