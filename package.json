@@ -6,18 +6,17 @@
     "scripts": {
         "build": "rsbuild build",
         "dev": "rsbuild dev",
-        "serve": "bun run server/app",
-        "reset": "rm -f data/s.db && bun drizzle-kit push && echo 'DB reset finish'"
+        "serve": "bun run apps/entry/index.ts",
+        "reset": "rm -f apps/data/*.jsonl apps/data/*.deleted && bun run apps/entry/index.ts"
     },
     "dependencies": {
         "@heroui/react": "^2.8.0-beta.5",
         "@twallpaper/react": "^2.1.2",
+        "@types/bun": "^1.3.14",
+        "@types/node": "^25.6.0",
         "@types/react-router-dom": "^5.3.3",
         "axios": "^1.11.0",
-        "better-sqlite3": "^12.8.0",
         "dotenv": "^17.1.0",
-        "drizzle-kit": "^0.31.10",
-        "drizzle-orm": "^0.45.2",
         "framer-motion": "^12.15.0",
         "gsap": "^3.13.0",
         "nanoid": "^5.1.6",
