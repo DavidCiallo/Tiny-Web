@@ -2,6 +2,6 @@
 .env
 dist
 node_modules
-data/*
+apps/data/*
 
 bun.lock
