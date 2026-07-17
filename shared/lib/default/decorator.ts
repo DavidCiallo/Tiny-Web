@@ -10,11 +10,11 @@ export interface BaseResponse<T> {
     message?: string;
 }
 
-export type Route = { path: string; handler: Function | null };
+export type Route = { path: string; handler: Function | null; raw?: boolean };
 
 export class BaseRouterInstance {
     base!: string;
     prefix!: string;
-    router!: Array<{ path: string; handler: Function | null; }>;
+    router!: Route[];
     [key: string]: string | Function | Route[];
 }
