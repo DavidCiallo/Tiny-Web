@@ -1,12 +1,15 @@
 import { Drawer, DrawerContent, DrawerHeader, DrawerBody, useDisclosure } from "@heroui/react";
 
 import MenuIcon from "../icons/menu";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Locale } from "../../methods/locale";
+import { clearAuthData, getUserInfo } from "../../methods/auth";
 
 export const MenuComp = ({ now }: { now?: string }) => {
     const locale = Locale("Menu");
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    const navigate = useNavigate();
+    const { email } = getUserInfo();
 
     const menuList = [
         {
@@ -14,6 +17,12 @@ export const MenuComp = ({ now }: { now?: string }) => {
             link: "/demo",
         },
     ];
+
+    function handleLogout(onClose: Function) {
+        clearAuthData();
+        onClose();
+        navigate("/auth");
+    }
 
     function renderBody(onClose: Function) {
         const list = menuList.map(({ name, link }) => {
@@ -30,8 +39,16 @@ export const MenuComp = ({ now }: { now?: string }) => {
                 <DrawerHeader className="flex flex-col gap-1">Menu</DrawerHeader>
                 <DrawerBody className="h-screen flex flex-col justify-between">
                     <div className="flex flex-col justify-start items-start">{list}</div>
-                    <div className="flex flex-row justify-start items-center h-20">
-                        <span>{/* {localStorage.getItem("email")} */}</span>
+                    <div className="flex flex-row justify-between items-center h-20">
+                        <span className="text-sm text-default-500">{email ?? ""}</span>
+                        {email && (
+                            <span
+                                className="text-sm text-danger cursor-pointer"
+                                onClick={() => handleLogout(onClose)}
+                            >
+                                {locale.Logout}
+                            </span>
+                        )}
                     </div>
                 </DrawerBody>
             </>
