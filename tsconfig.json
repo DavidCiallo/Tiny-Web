@@ -18,18 +18,11 @@
     "resolveJsonModule": true,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
-    "paths": {
-      "@shared/*": [
-        "apps/shared/*"
-      ]
-    },
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true
+    "strict": true
   },
   "include": [
-    "apps"
+    "shared",
+    "client",
+    "server"
   ]
 }

@@ -2,6 +2,7 @@
 .env
 dist
 node_modules
-apps/data/*
+data/*
+!data/.gitkeep
 
 bun.lock

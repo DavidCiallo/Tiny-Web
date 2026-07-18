@@ -4,9 +4,9 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "${PORT:-3300}:3300"
+      - "${SERVER_PORT:-3300}:3300"
     volumes:
-      - ./apps/data:/app/apps/data
+      - ./data:/app/data
     env_file:
       - .env
     restart: unless-stopped
