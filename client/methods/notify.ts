@@ -1,3 +1,3 @@
-export function toast(message: string): void {
-    alert(message);
-}
+import { toast as sonnerToast } from "@/client/components/ui/sonner"
+
+export const toast = sonnerToast;
