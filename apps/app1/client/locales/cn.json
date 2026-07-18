@@ -14,7 +14,8 @@
     },
 
     "Menu": {
-        "Demo": "示范页面"
+        "Demo": "示范页面",
+        "Logout": "退出登录"
     },
 
     "AuthPage": {

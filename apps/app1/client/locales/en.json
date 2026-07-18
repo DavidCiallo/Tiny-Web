@@ -14,7 +14,8 @@
     },
 
     "Menu": {
-        "Demo": "Demo Page"
+        "Demo": "Demo Page",
+        "Logout": "Logout"
     },
 
     "AuthPage": {
