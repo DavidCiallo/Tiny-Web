@@ -29,9 +29,9 @@ const secondaryNav: NavItem[] = [
   { title: "Settings", href: "/settings", icon: Settings },
 ]
 
-export function Sidebar() {
+export function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   return (
-    <aside className="bg-sidebar text-sidebar-foreground flex h-screen w-60 flex-col border-r">
+    <>
       <div className="flex h-16 items-center gap-2 border-b px-6">
         <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-lg font-bold">
           T
@@ -44,14 +44,14 @@ export function Sidebar() {
           Workspace
         </p>
         {mainNav.map((item) => (
-          <SidebarItem key={item.href} item={item} />
+          <SidebarItem key={item.href} item={item} onNavigate={onNavigate} />
         ))}
 
         <p className="text-muted-foreground px-3 pb-2 pt-6 text-xs font-semibold uppercase tracking-wider">
           General
         </p>
         {secondaryNav.map((item) => (
-          <SidebarItem key={item.href} item={item} />
+          <SidebarItem key={item.href} item={item} onNavigate={onNavigate} />
         ))}
       </nav>
 
@@ -63,15 +63,30 @@ export function Sidebar() {
           </p>
         </div>
       </div>
+    </>
+  )
+}
+
+export function DesktopSidebar() {
+  return (
+    <aside className="bg-sidebar text-sidebar-foreground hidden h-screen w-60 shrink-0 flex-col border-r md:flex">
+      <SidebarBody />
     </aside>
   )
 }
 
-function SidebarItem({ item }: { item: NavItem }) {
+function SidebarItem({
+  item,
+  onNavigate,
+}: {
+  item: NavItem
+  onNavigate?: () => void
+}) {
   const Icon = item.icon
   return (
     <NavLink
       to={item.href}
+      onClick={onNavigate}
       className={({ isActive }) =>
         cn(
           "group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",

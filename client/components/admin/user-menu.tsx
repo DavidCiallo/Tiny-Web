@@ -32,7 +32,7 @@ export function UserMenu() {
             <AvatarImage src={avatarUrl} alt="avatar" />
             <AvatarFallback className="text-xs">A</AvatarFallback>
           </Avatar>
-          <span className="text-sm font-medium">Admin</span>
+          <span className="hidden text-sm font-medium sm:inline">Admin</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

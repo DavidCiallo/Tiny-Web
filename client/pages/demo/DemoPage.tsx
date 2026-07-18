@@ -87,14 +87,14 @@ export function DemoPage() {
           <CardDescription>Create a demo record in one click</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={onCreate} className="flex gap-2">
+          <form onSubmit={onCreate} className="flex flex-col gap-2 sm:flex-row">
             <Input
               placeholder="Enter a name..."
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              className="max-w-sm"
+              className="sm:max-w-sm"
             />
-            <Button type="submit">
+            <Button type="submit" className="shrink-0">
               <Plus className="size-4" />
               Add
             </Button>
