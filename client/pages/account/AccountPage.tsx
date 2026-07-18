@@ -69,59 +69,97 @@ export function AccountPage() {
 
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>ID</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                Array.from({ length: 4 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell colSpan={4}>
-                      <Skeleton className="h-8 w-full" />
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : list.length === 0 ? (
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={4} className="text-muted-foreground py-12 text-center">
-                    No accounts yet
-                  </TableCell>
+                  <TableHead>User</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Status</TableHead>
                 </TableRow>
-              ) : (
-                list.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                            {item.name.slice(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium">{item.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {item.email}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground font-mono text-xs">
-                      {item.id}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-emerald-600 border-emerald-600/30 bg-emerald-600/5">
-                        Active
-                      </Badge>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell colSpan={4}>
+                        <Skeleton className="h-8 w-full" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : list.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-muted-foreground py-12 text-center">
+                      No accounts yet
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  list.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar>
+                            <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                              {item.name.slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium">{item.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {item.email}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-xs">
+                        {item.id}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-emerald-600 border-emerald-600/30 bg-emerald-600/5">
+                          Active
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <ul className="divide-y p-4 md:hidden">
+            {loading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <li key={i} className="py-3">
+                  <Skeleton className="h-12 w-full" />
+                </li>
+              ))
+            ) : list.length === 0 ? (
+              <li className="text-muted-foreground py-8 text-center text-sm">
+                No accounts yet
+              </li>
+            ) : (
+              list.map((item) => (
+                <li key={item.id} className="flex items-center gap-3 py-3">
+                  <Avatar>
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                      {item.name.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    <p className="truncate text-sm font-medium">{item.name}</p>
+                    <p className="text-muted-foreground truncate text-xs">
+                      {item.email}
+                    </p>
+                    <p className="text-muted-foreground truncate font-mono text-[10px]">
+                      {item.id}
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="text-emerald-600 border-emerald-600/30 bg-emerald-600/5 shrink-0">
+                    Active
+                  </Badge>
+                </li>
+              ))
+            )}
+          </ul>
         </CardContent>
       </Card>
 

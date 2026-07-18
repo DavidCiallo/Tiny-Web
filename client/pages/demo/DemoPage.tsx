@@ -108,50 +108,83 @@ export function DemoPage() {
           <CardDescription>Page {page}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                Array.from({ length: 3 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell colSpan={4}>
-                      <Skeleton className="h-6 w-full" />
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : list.length === 0 ? (
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={4} className="text-muted-foreground py-8 text-center">
-                    No records yet
-                  </TableCell>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ) : (
-                list.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="text-muted-foreground font-mono text-xs">
-                      {item.id}
-                    </TableCell>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {new Date(item.create_time).toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" className="size-8">
-                        <Trash2 className="size-4" />
-                      </Button>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell colSpan={4}>
+                        <Skeleton className="h-6 w-full" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : list.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-muted-foreground py-8 text-center">
+                      No records yet
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  list.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="text-muted-foreground font-mono text-xs">
+                        {item.id}
+                      </TableCell>
+                      <TableCell className="font-medium">{item.name}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {new Date(item.create_time).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" className="size-8">
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <ul className="divide-y md:hidden">
+            {loading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <li key={i} className="py-3">
+                  <Skeleton className="h-12 w-full" />
+                </li>
+              ))
+            ) : list.length === 0 ? (
+              <li className="text-muted-foreground py-8 text-center text-sm">
+                No records yet
+              </li>
+            ) : (
+              list.map((item) => (
+                <li key={item.id} className="flex items-start justify-between gap-3 py-3">
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <p className="truncate text-sm font-medium">{item.name}</p>
+                    <p className="text-muted-foreground truncate font-mono text-xs">
+                      {item.id}
+                    </p>
+                    <p className="text-muted-foreground text-xs">
+                      {new Date(item.create_time).toLocaleString()}
+                    </p>
+                  </div>
+                  <Button variant="ghost" size="icon" className="size-8 shrink-0">
+                    <Trash2 className="size-4" />
+                  </Button>
+                </li>
+              ))
+            )}
+          </ul>
 
           <div className="flex items-center justify-end gap-2 pt-4">
             <Button
