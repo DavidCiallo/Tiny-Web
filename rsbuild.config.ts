@@ -1,5 +1,6 @@
 import { defineConfig } from "@rsbuild/core";
 import { pluginReact } from "@rsbuild/plugin-react";
+import path from "node:path";
 
 export default defineConfig({
     html: {
@@ -11,13 +12,18 @@ export default defineConfig({
             index: "./client/index.tsx",
         },
     },
+    resolve: {
+        alias: {
+            "@": path.resolve(__dirname, "./"),
+        },
+    },
     output: {
         filenameHash: false,
     },
     server: {
         proxy: {
             "/api": {
-                target: "http://127.0.0.1:3300",
+                target: "http://127.0.0.1:3900",
                 changeOrigin: true,
             },
         },
