@@ -1,5 +1,0 @@
-import { BaseEntity } from "../../lib/default/base.entity";
-
-export interface AccountEntity extends BaseEntity {
-    //__ENTITY_FIELDS__//
-}

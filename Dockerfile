@@ -8,8 +8,8 @@ RUN bun install --frozen-lockfile
 COPY . .
 RUN bun run build
 
-RUN mkdir -p apps/data
+RUN mkdir -p data
 
 EXPOSE 3300
 
-CMD ["bun", "run", "apps/entry/index.ts"]
+CMD ["bun", "run", "server/app/index.ts"]
