@@ -57,9 +57,6 @@ export function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
       <div className="border-t p-3">
         <div className="bg-sidebar-accent text-sidebar-accent-foreground rounded-lg p-3 text-xs">
           <p className="font-medium">Tiny-Web Admin</p>
-          <p className="text-muted-foreground mt-1">
-            shadcn/ui · Tailwind v4
-          </p>
         </div>
       </div>
     </>
