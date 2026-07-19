@@ -10,6 +10,7 @@ import {
 
 import { cn } from "@/client/lib/utils"
 import { Badge } from "@/client/components/ui/badge"
+import logoUrl from "@/client/assets/logo.svg"
 
 type NavItem = {
   title: string
@@ -33,9 +34,7 @@ export function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <>
       <div className="flex h-16 items-center gap-2 border-b px-6">
-        <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-lg font-bold">
-          T
-        </div>
+        <img src={logoUrl} alt="" className="size-8" aria-hidden="true" />
         <span className="text-lg font-semibold tracking-tight">Tiny-Web</span>
       </div>
 
